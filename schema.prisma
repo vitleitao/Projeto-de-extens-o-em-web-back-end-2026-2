@@ -1,0 +1,120 @@
+// Modelo de dados do sistema de estoque do salão Lukas Muny.
+// O saldo do produto (estoque_atual) só muda através de uma movimentação,
+// assim dá pra saber quem mexeu no estoque e quando.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  PROPRIETARIO
+  PROFISSIONAL
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA_VENDA
+  USO_INTERNO
+  AJUSTE
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senhaHash String   @map("senha_hash")
+  perfil    Perfil   @default(PROFISSIONAL)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  movimentacoes Movimentacao[]
+  vendas        Venda[]
+
+  @@map("usuarios")
+}
+
+model Fornecedor {
+  id               Int     @id @default(autoincrement())
+  nome             String
+  telefone         String?
+  prazoEntregaDias Int?    @map("prazo_entrega_dias")
+
+  produtos Produto[]
+
+  @@map("fornecedores")
+}
+
+model Produto {
+  id            Int       @id @default(autoincrement())
+  nome          String
+  marca         String?
+  categoria     String?
+  codigoBarras  String?   @unique @map("codigo_barras")
+  precoCusto    Decimal   @default(0) @map("preco_custo") @db.Decimal(10, 2)
+  precoVenda    Decimal   @map("preco_venda") @db.Decimal(10, 2)
+  estoqueAtual  Int       @default(0) @map("estoque_atual")
+  estoqueMinimo Int       @default(0) @map("estoque_minimo")
+  validade      DateTime? @db.Date
+  ativo         Boolean   @default(true)
+  fornecedorId  Int?      @map("fornecedor_id")
+  criadoEm      DateTime  @default(now()) @map("criado_em")
+  atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
+
+  fornecedor    Fornecedor?    @relation(fields: [fornecedorId], references: [id])
+  movimentacoes Movimentacao[]
+  itensVenda    ItemVenda[]
+
+  @@map("produtos")
+}
+
+model Movimentacao {
+  id         Int              @id @default(autoincrement())
+  produtoId  Int              @map("produto_id")
+  tipo       TipoMovimentacao
+  // positiva = entrou no estoque, negativa = saiu
+  quantidade Int
+  saldoApos  Int              @map("saldo_apos")
+  motivo     String?
+  usuarioId  Int              @map("usuario_id")
+  vendaId    Int?             @map("venda_id")
+  criadoEm   DateTime         @default(now()) @map("criado_em")
+
+  produto Produto @relation(fields: [produtoId], references: [id])
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  venda   Venda?  @relation(fields: [vendaId], references: [id])
+
+  @@index([produtoId, criadoEm])
+  @@map("movimentacoes")
+}
+
+model Venda {
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int      @map("usuario_id")
+  formaPagamento String   @map("forma_pagamento")
+  valorTotal     Decimal  @map("valor_total") @db.Decimal(10, 2)
+  criadoEm       DateTime @default(now()) @map("criado_em")
+
+  usuario       Usuario        @relation(fields: [usuarioId], references: [id])
+  itens         ItemVenda[]
+  movimentacoes Movimentacao[]
+
+  @@map("vendas")
+}
+
+model ItemVenda {
+  id            Int     @id @default(autoincrement())
+  vendaId       Int     @map("venda_id")
+  produtoId     Int     @map("produto_id")
+  quantidade    Int
+  precoUnitario Decimal @map("preco_unitario") @db.Decimal(10, 2)
+
+  venda   Venda   @relation(fields: [vendaId], references: [id])
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@map("itens_venda")
+}

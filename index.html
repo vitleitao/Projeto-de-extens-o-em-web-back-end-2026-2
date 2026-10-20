@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#6A2C5A" />
+  <title>Lukas Muny · Estoque</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Tela de login -->
+  <main id="tela-login" class="login" hidden>
+    <form id="form-login" class="login-caixa">
+      <h1 class="marca">Lukas Muny</h1>
+      <p class="login-sub">Controle de estoque e vendas do salão</p>
+      <label>E-mail
+        <input type="email" name="email" autocomplete="username" required />
+      </label>
+      <label>Senha
+        <input type="password" name="senha" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn btn-principal">Entrar</button>
+      <p id="login-erro" class="erro" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- App -->
+  <div id="app" hidden>
+    <header class="topo">
+      <span class="marca marca-pequena">Lukas Muny</span>
+      <span class="topo-usuario">
+        <span id="nome-usuario"></span>
+        <button id="btn-sair" class="link">Sair</button>
+      </span>
+    </header>
+
+    <main id="conteudo" class="conteudo"></main>
+
+    <nav class="abas" aria-label="Seções">
+      <button data-aba="vender" class="aba ativa">Vender</button>
+      <button data-aba="estoque" class="aba">Estoque</button>
+      <button data-aba="uso" class="aba">Uso no salão</button>
+      <button data-aba="repor" class="aba so-dono">Repor <span id="badge-repor" class="badge" hidden></span></button>
+      <button data-aba="relatorios" class="aba so-dono">Relatórios</button>
+    </nav>
+  </div>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
